@@ -1,0 +1,5 @@
+export { parsePPTX } from './parser'
+export { parseSlide } from './slideParser'
+export { parseShape } from './shapeParser'
+export { parseTextBody } from './textParser'
+export { parseImage, extractMedia } from './imageParser'

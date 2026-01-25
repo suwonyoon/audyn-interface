@@ -1,0 +1,5 @@
+export { exportToPPTX, downloadPPTX } from './exporter'
+export { exportSlide } from './slideExporter'
+export { exportTextElement } from './textExporter'
+export { exportShapeElement } from './shapeExporter'
+export { exportImageElement } from './imageExporter'

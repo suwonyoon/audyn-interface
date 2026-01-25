@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:officeopenxml.com)",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:gitbrent.github.io)",
+      "WebFetch(domain:fabricjs.com)",
+      "Bash(npm create:*)",
+      "Bash(npm install)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run build:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "WebFetch(domain:platform.openai.com)",
+      "Bash(npm ls:*)",
+      "Bash(export PATH=\"/Users/suwonyoon/.nvm/versions/node/v24.13.0/bin:$PATH\")",
+      "Bash(npm audit:*)",
+      "Bash(export PATH=\"/usr/bin:/bin:/usr/sbin:/sbin:/Users/suwonyoon/.nvm/versions/node/v24.13.0/bin:$PATH\")",
+      "Bash(npm view:*)",
+      "Bash(/usr/local/bin/npm run build)",
+      "Bash(/opt/homebrew/bin/npm run build)",
+      "Bash(unzip:*)"
+    ]
+  }
+}
