@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
-import { usePresentationStore } from '@/stores'
-import { generateId } from '@/lib/utils/xmlUtils'
-import type { TextElement, ShapeElement, ImageElement } from '@/types'
+import { usePresentationStore } from '@core/stores'
+import { generateId } from '@core/lib/utils/xmlUtils'
+import type { TextElement, ShapeElement, ImageElement } from '@core/types'
 import { Plus, Type, Square, Image, ChevronDown } from 'lucide-react'
 
 export function InsertMenu() {

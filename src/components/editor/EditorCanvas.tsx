@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { usePresentationStore } from '@/stores'
-import { SlideCanvas } from '@/lib/canvas'
+import { usePresentationStore } from '@core/stores'
+import { SlideCanvas } from '@core/lib/canvas'
 import { ZoomIn, ZoomOut, Maximize } from 'lucide-react'
 
 export function EditorCanvas() {

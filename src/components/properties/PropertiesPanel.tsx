@@ -1,4 +1,4 @@
-import { usePresentationStore } from '@/stores'
+import { usePresentationStore } from '@core/stores'
 import { TextProperties } from './TextProperties'
 import { ShapeProperties } from './ShapeProperties'
 import { SlideProperties } from './SlideProperties'

@@ -1,4 +1,4 @@
-import { useAnalysisStore } from '@/stores'
+import { useAnalysisStore } from '@core/stores'
 import { AlertCircle, AlertTriangle, Info, Lightbulb, TrendingUp, TrendingDown } from 'lucide-react'
 import { ScoreBadge } from './ScoreDisplay'
 

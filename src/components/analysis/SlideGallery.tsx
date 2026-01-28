@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import type { Slide, SlideAnalysis, AnalysisComment } from '@/types'
+import type { Slide, SlideAnalysis, AnalysisComment } from '@core/types'
+import { usePlatformOptional } from '@core/platform'
 import {
   Check,
   AlertCircle,
@@ -60,6 +61,9 @@ export function SlideGallery({
   onResolveComment,
   onUnresolveComment,
 }: SlideGalleryProps) {
+  const platform = usePlatformOptional()
+  const isOffice = platform?.platform === 'office'
+
   const [selectedSlideId, setSelectedSlideId] = useState<string | null>(
     slides[0]?.slideId || null
   )
@@ -69,7 +73,11 @@ export function SlideGallery({
   return (
     <div className="space-y-4">
       {/* Slide Thumbnail Gallery */}
-      <div className="grid grid-cols-4 gap-3 sm:grid-cols-5 lg:grid-cols-6">
+      <div className={`grid gap-2 ${
+        isOffice
+          ? 'grid-cols-2 sm:grid-cols-3'  // Compact grid for Office task pane
+          : 'grid-cols-4 gap-3 sm:grid-cols-5 lg:grid-cols-6'
+      }`}>
         {slides.map((slideAnalysis) => {
           const slide = presentationSlides.find(
             (s) => s.id === slideAnalysis.slideId
@@ -115,7 +123,7 @@ export function SlideGallery({
               className="flex items-center gap-1 px-2 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded transition-colors"
             >
               <ExternalLink className="w-4 h-4" />
-              Edit Slide
+              {isOffice ? 'Go to Slide' : 'Edit Slide'}
             </button>
           </div>
 

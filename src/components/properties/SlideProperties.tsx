@@ -1,5 +1,5 @@
-import { usePresentationStore } from '@/stores'
-import type { Slide } from '@/types'
+import { usePresentationStore } from '@core/stores'
+import type { Slide } from '@core/types'
 
 interface SlidePropertiesProps {
   slide: Slide

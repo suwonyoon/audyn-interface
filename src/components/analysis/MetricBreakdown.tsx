@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { MetricScore } from '@/types'
+import type { MetricScore } from '@core/types'
 import { ChevronDown, ChevronRight, Quote } from 'lucide-react'
 
 interface MetricBreakdownProps {

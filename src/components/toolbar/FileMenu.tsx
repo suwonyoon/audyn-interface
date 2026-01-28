@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
-import { usePresentationStore } from '@/stores'
-import { exportToPPTX, downloadPPTX } from '@/lib/export'
+import { usePresentationStore } from '@core/stores'
+import { exportToPPTX, downloadPPTX } from '@core/lib/export'
 import { FileIcon, Upload, Download, FilePlus, ChevronDown } from 'lucide-react'
 
 export function FileMenu() {

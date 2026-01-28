@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
-import type { SectionTimelinePoint } from '@/types'
+import type { SectionTimelinePoint } from '@core/types'
 
 interface ScoreTimelineProps {
   data: SectionTimelinePoint[]
   selectedAgentId: string | null
   onSectionClick: (sectionId: string, agentId: string | null) => void
+  compact?: boolean
 }
 
 function getScoreColor(score: number): string {
@@ -13,13 +14,21 @@ function getScoreColor(score: number): string {
   return '#22c55e' // green-500
 }
 
-export function ScoreTimeline({ data, selectedAgentId, onSectionClick }: ScoreTimelineProps) {
+export function ScoreTimeline({ data, selectedAgentId, onSectionClick, compact = false }: ScoreTimelineProps) {
   const [hoveredPoint, setHoveredPoint] = useState<{
     sectionIndex: number
     agentId: string | null
   } | null>(null)
 
   const chartDimensions = useMemo(() => {
+    if (compact) {
+      const width = 320
+      const height = 150
+      const padding = { top: 15, right: 25, bottom: 40, left: 30 }
+      const chartWidth = width - padding.left - padding.right
+      const chartHeight = height - padding.top - padding.bottom
+      return { width, height, padding, chartWidth, chartHeight }
+    }
     const width = 600
     const height = 260
     // Add more horizontal padding so edge sections aren't cut off
@@ -27,7 +36,7 @@ export function ScoreTimeline({ data, selectedAgentId, onSectionClick }: ScoreTi
     const chartWidth = width - padding.left - padding.right
     const chartHeight = height - padding.top - padding.bottom
     return { width, height, padding, chartWidth, chartHeight }
-  }, [])
+  }, [compact])
 
   const { avgScore, lowestSection, agents } = useMemo(() => {
     if (data.length === 0) {
@@ -70,7 +79,7 @@ export function ScoreTimeline({ data, selectedAgentId, onSectionClick }: ScoreTi
     const scoreRange = maxScore - minScore
 
     const agentCount = agents.length
-    const dotSpacing = agentCount > 1 ? 10 : 0
+    const dotSpacing = agentCount > 1 ? (compact ? 6 : 10) : 0
 
     // Add padding so points aren't at exact edges
     const edgePadding = data.length > 1 ? chartWidth * 0.05 : 0
@@ -134,14 +143,16 @@ export function ScoreTimeline({ data, selectedAgentId, onSectionClick }: ScoreTi
   }
 
   return (
-    <div className="p-4 bg-white rounded-lg border shadow-sm">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-gray-700">Section Score Timeline</h3>
-        <div className="flex items-center gap-4 text-xs text-gray-500">
+    <div className={`bg-white rounded-lg border shadow-sm ${compact ? 'p-2' : 'p-4'}`}>
+      <div className={`flex items-center justify-between ${compact ? 'mb-2' : 'mb-3'}`}>
+        <h3 className={`font-semibold text-gray-700 ${compact ? 'text-xs' : 'text-sm'}`}>
+          {compact ? 'Score Timeline' : 'Section Score Timeline'}
+        </h3>
+        <div className={`flex items-center gap-4 text-gray-500 ${compact ? 'text-[10px]' : 'text-xs'}`}>
           <span>
             Avg: <span className="font-semibold text-gray-700">{avgScore.toFixed(1)}</span>
           </span>
-          {lowestSection && (
+          {!compact && lowestSection && (
             <span>
               Lowest: <span className="text-gray-600">{lowestSection.sectionName}</span> (
               <span className="font-semibold text-red-600">
@@ -154,25 +165,29 @@ export function ScoreTimeline({ data, selectedAgentId, onSectionClick }: ScoreTi
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap items-center gap-4 mb-3 pb-3 border-b border-gray-100">
-        <div className="flex items-center gap-1.5">
-          <div className="w-3 h-3 rounded-full bg-blue-500" />
-          <span className="text-xs text-gray-600">Agent Score (click to filter)</span>
+      <div className={`flex flex-wrap items-center border-b border-gray-100 ${compact ? 'gap-2 mb-2 pb-2' : 'gap-4 mb-3 pb-3'}`}>
+        <div className="flex items-center gap-1">
+          <div className={`rounded-full bg-blue-500 ${compact ? 'w-2 h-2' : 'w-3 h-3'}`} />
+          <span className={`text-gray-600 ${compact ? 'text-[10px]' : 'text-xs'}`}>
+            {compact ? 'Agent' : 'Agent Score (click to filter)'}
+          </span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-2 h-2 rotate-45 bg-gray-500" />
-          <span className="text-xs text-gray-600">Section Average (click to show all)</span>
+        <div className="flex items-center gap-1">
+          <div className={`rotate-45 bg-gray-500 ${compact ? 'w-1.5 h-1.5' : 'w-2 h-2'}`} />
+          <span className={`text-gray-600 ${compact ? 'text-[10px]' : 'text-xs'}`}>
+            {compact ? 'Avg' : 'Section Average (click to show all)'}
+          </span>
         </div>
         {selectedAgentId && (
-          <div className="ml-auto flex items-center gap-2 px-2 py-1 bg-blue-50 rounded text-xs">
+          <div className={`ml-auto flex items-center gap-1 bg-blue-50 rounded ${compact ? 'px-1.5 py-0.5 text-[10px]' : 'px-2 py-1 text-xs'}`}>
             <span className="text-blue-700">
-              Filtering: {agents.find(a => a.id === selectedAgentId)?.name}
+              {compact ? agents.find(a => a.id === selectedAgentId)?.name : `Filtering: ${agents.find(a => a.id === selectedAgentId)?.name}`}
             </span>
             <button
               onClick={() => onSectionClick(data[0]?.sectionId || '', null)}
               className="text-blue-500 hover:text-blue-700 font-medium"
             >
-              Clear
+              ×
             </button>
           </div>
         )}
@@ -197,7 +212,7 @@ export function ScoreTimeline({ data, selectedAgentId, onSectionClick }: ScoreTi
           <rect x={0} y={chartHeight * (4/6)} width={chartWidth} height={chartHeight * (2/6)} fill="#dcfce7" opacity="0.3" />
 
           {/* Y-axis grid lines */}
-          {[1, 2, 3, 4, 5, 6, 7].map((score) => {
+          {(compact ? [1, 4, 7] : [1, 2, 3, 4, 5, 6, 7]).map((score) => {
             const y = chartHeight - ((score - 1) / 6) * chartHeight
             return (
               <g key={score}>
@@ -209,7 +224,7 @@ export function ScoreTimeline({ data, selectedAgentId, onSectionClick }: ScoreTi
                   stroke="#e5e7eb"
                   strokeWidth="1"
                 />
-                <text x={-10} y={y + 4} textAnchor="end" className="text-xs fill-gray-400">
+                <text x={compact ? -6 : -10} y={y + 4} textAnchor="end" className={`fill-gray-400 ${compact ? 'text-[8px]' : 'text-xs'}`}>
                   {score}
                 </text>
               </g>
@@ -245,15 +260,21 @@ export function ScoreTimeline({ data, selectedAgentId, onSectionClick }: ScoreTi
                   hoveredPoint?.agentId === point.agentId
                 const isSelected = selectedAgentId === point.agentId
 
+                // Compact mode: smaller dot sizes
+                const baseRadius = compact ? 4 : 5
+                const hoverRadius = compact ? 6 : 8
+                const selectedRadius = compact ? 5 : 7
+                const strokeWidth = compact ? (isSelected ? 2 : 1.5) : (isSelected ? 3 : 2)
+
                 return (
                   <g key={point.agentId}>
                     <circle
                       cx={point.x}
                       cy={point.y}
-                      r={isHovered ? 8 : isSelected ? 7 : 5}
+                      r={isHovered ? hoverRadius : isSelected ? selectedRadius : baseRadius}
                       fill="#3b82f6"
                       stroke={isSelected ? '#1d4ed8' : 'white'}
-                      strokeWidth={isSelected ? 3 : 2}
+                      strokeWidth={strokeWidth}
                       className="cursor-pointer transition-all duration-150"
                       style={{ filter: isHovered ? 'drop-shadow(0 2px 4px rgba(59, 130, 246, 0.4))' : undefined }}
                       onMouseEnter={() =>
@@ -270,27 +291,27 @@ export function ScoreTimeline({ data, selectedAgentId, onSectionClick }: ScoreTi
                     {isHovered && (
                       <g style={{ pointerEvents: 'none' }}>
                         <rect
-                          x={point.x - 70}
-                          y={point.y - 50}
-                          width="140"
-                          height="40"
-                          rx="6"
+                          x={point.x - (compact ? 50 : 70)}
+                          y={point.y - (compact ? 38 : 50)}
+                          width={compact ? 100 : 140}
+                          height={compact ? 30 : 40}
+                          rx={compact ? 4 : 6}
                           fill="#1f2937"
                           style={{ filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.2))' }}
                         />
                         <text
                           x={point.x}
-                          y={point.y - 32}
+                          y={point.y - (compact ? 24 : 32)}
                           textAnchor="middle"
-                          className="text-xs fill-white font-medium"
+                          className={`fill-white font-medium ${compact ? 'text-[9px]' : 'text-xs'}`}
                         >
-                          {point.agentName}
+                          {compact ? (point.agentName.length > 12 ? point.agentName.substring(0, 10) + '..' : point.agentName) : point.agentName}
                         </text>
                         <text
                           x={point.x}
-                          y={point.y - 18}
+                          y={point.y - (compact ? 13 : 18)}
                           textAnchor="middle"
-                          className="text-xs fill-gray-300"
+                          className={`fill-gray-300 ${compact ? 'text-[8px]' : 'text-xs'}`}
                         >
                           Score: {point.score.toFixed(1)} / 7
                         </text>
@@ -301,52 +322,57 @@ export function ScoreTimeline({ data, selectedAgentId, onSectionClick }: ScoreTi
               })}
 
               {/* Average indicator (diamond) */}
-              <polygon
-                points={`${section.baseX},${section.avgY - 5} ${section.baseX + 5},${section.avgY} ${section.baseX},${section.avgY + 5} ${section.baseX - 5},${section.avgY}`}
-                fill={getScoreColor(section.averageScore)}
-                stroke="white"
-                strokeWidth="2"
-                className="cursor-pointer transition-all duration-150"
-                style={{
-                  filter: (hoveredPoint?.sectionIndex === sectionIdx && hoveredPoint?.agentId === null)
-                    ? 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
-                    : undefined
-                }}
-                onMouseEnter={() =>
-                  setHoveredPoint({ sectionIndex: sectionIdx, agentId: null })
-                }
-                onMouseLeave={() => setHoveredPoint(null)}
-                onClick={() => onSectionClick(section.sectionId, null)}
-              />
+              {(() => {
+                const diamondSize = compact ? 4 : 5
+                return (
+                  <polygon
+                    points={`${section.baseX},${section.avgY - diamondSize} ${section.baseX + diamondSize},${section.avgY} ${section.baseX},${section.avgY + diamondSize} ${section.baseX - diamondSize},${section.avgY}`}
+                    fill={getScoreColor(section.averageScore)}
+                    stroke="white"
+                    strokeWidth={compact ? 1.5 : 2}
+                    className="cursor-pointer transition-all duration-150"
+                    style={{
+                      filter: (hoveredPoint?.sectionIndex === sectionIdx && hoveredPoint?.agentId === null)
+                        ? 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
+                        : undefined
+                    }}
+                    onMouseEnter={() =>
+                      setHoveredPoint({ sectionIndex: sectionIdx, agentId: null })
+                    }
+                    onMouseLeave={() => setHoveredPoint(null)}
+                    onClick={() => onSectionClick(section.sectionId, null)}
+                  />
+                )
+              })()}
 
               {/* Average tooltip */}
               {hoveredPoint?.sectionIndex === sectionIdx &&
                 hoveredPoint?.agentId === null && (
                   <g style={{ pointerEvents: 'none' }}>
                     <rect
-                      x={section.baseX - 60}
-                      y={section.avgY - 50}
-                      width="120"
-                      height="40"
-                      rx="6"
+                      x={section.baseX - (compact ? 45 : 60)}
+                      y={section.avgY - (compact ? 38 : 50)}
+                      width={compact ? 90 : 120}
+                      height={compact ? 30 : 40}
+                      rx={compact ? 4 : 6}
                       fill="#1f2937"
                       style={{ filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.2))' }}
                     />
                     <text
                       x={section.baseX}
-                      y={section.avgY - 32}
+                      y={section.avgY - (compact ? 24 : 32)}
                       textAnchor="middle"
-                      className="text-xs fill-white font-medium"
+                      className={`fill-white font-medium ${compact ? 'text-[9px]' : 'text-xs'}`}
                     >
-                      {section.sectionName}
+                      {compact ? (section.sectionName.length > 10 ? section.sectionName.substring(0, 8) + '..' : section.sectionName) : section.sectionName}
                     </text>
                     <text
                       x={section.baseX}
-                      y={section.avgY - 18}
+                      y={section.avgY - (compact ? 13 : 18)}
                       textAnchor="middle"
-                      className="text-xs fill-gray-300"
+                      className={`fill-gray-300 ${compact ? 'text-[8px]' : 'text-xs'}`}
                     >
-                      Average: {section.averageScore.toFixed(1)} / 7
+                      {compact ? `Avg: ${section.averageScore.toFixed(1)}` : `Average: ${section.averageScore.toFixed(1)} / 7`}
                     </text>
                   </g>
                 )}
@@ -354,19 +380,23 @@ export function ScoreTimeline({ data, selectedAgentId, onSectionClick }: ScoreTi
               {/* X-axis label (section name) */}
               <text
                 x={section.baseX}
-                y={chartHeight + 18}
+                y={chartHeight + (compact ? 12 : 18)}
                 textAnchor="middle"
-                className="text-xs fill-gray-700 font-medium"
+                className={`fill-gray-700 font-medium ${compact ? 'text-[9px]' : 'text-xs'}`}
               >
-                {section.sectionName.length > 14
-                  ? section.sectionName.substring(0, 12) + '...'
-                  : section.sectionName}
+                {(() => {
+                  const maxLen = compact ? 12 : 16
+                  const truncLen = compact ? 10 : 14
+                  return section.sectionName.length > maxLen
+                    ? section.sectionName.substring(0, truncLen) + '...'
+                    : section.sectionName
+                })()}
               </text>
               <text
                 x={section.baseX}
-                y={chartHeight + 32}
+                y={chartHeight + (compact ? 22 : 32)}
                 textAnchor="middle"
-                className="text-xs fill-gray-400"
+                className={`fill-gray-400 ${compact ? 'text-[8px]' : 'text-xs'}`}
               >
                 §{section.sectionIndex + 1}
               </text>
@@ -374,15 +404,17 @@ export function ScoreTimeline({ data, selectedAgentId, onSectionClick }: ScoreTi
           ))}
 
           {/* Y-axis label */}
-          <text
-            x={-chartHeight / 2}
-            y={-35}
-            textAnchor="middle"
-            transform="rotate(-90)"
-            className="text-xs fill-gray-400"
-          >
-            Score (1-7)
-          </text>
+          {!compact && (
+            <text
+              x={-chartHeight / 2}
+              y={-35}
+              textAnchor="middle"
+              transform="rotate(-90)"
+              className="text-xs fill-gray-400"
+            >
+              Score (1-7)
+            </text>
+          )}
         </g>
       </svg>
     </div>

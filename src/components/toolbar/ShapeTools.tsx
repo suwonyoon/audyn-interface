@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { usePresentationStore } from '@/stores'
+import { usePresentationStore } from '@core/stores'
 import { Palette, Trash2 } from 'lucide-react'
 
 const COLORS = [

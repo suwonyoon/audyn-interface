@@ -1,4 +1,4 @@
-import { usePresentationStore } from '@/stores'
+import { usePresentationStore } from '@core/stores'
 import { Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight } from 'lucide-react'
 
 export function TextTools() {

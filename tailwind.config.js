@@ -2,10 +2,15 @@
 export default {
   content: [
     "./index.html",
+    "./taskpane.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      screens: {
+        'tp': '350px',  // task-pane breakpoint for Office add-in
+      },
+    },
   },
   plugins: [],
 }

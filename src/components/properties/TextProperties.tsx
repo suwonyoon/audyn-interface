@@ -1,5 +1,5 @@
-import { usePresentationStore } from '@/stores'
-import type { TextElement } from '@/types'
+import { usePresentationStore } from '@core/stores'
+import type { TextElement } from '@core/types'
 
 interface TextPropertiesProps {
   element: TextElement

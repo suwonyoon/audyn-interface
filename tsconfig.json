@@ -22,7 +22,9 @@
 
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@core/*": ["src/core/*"],
+      "@platforms/*": ["src/platforms/*"]
     }
   },
   "include": ["src"]

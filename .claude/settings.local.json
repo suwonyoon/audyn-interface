@@ -21,7 +21,14 @@
       "Bash(npm view:*)",
       "Bash(/usr/local/bin/npm run build)",
       "Bash(/opt/homebrew/bin/npm run build)",
-      "Bash(unzip:*)"
+      "Bash(unzip:*)",
+      "Bash(tree:*)",
+      "Bash(xargs sed:*)",
+      "Bash(/usr/local/bin/npm --version)",
+      "Bash(/opt/homebrew/bin/npm --version)",
+      "Bash(~/.nvm/current/bin/npm --version)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run build:web:*)"
     ]
   }
 }

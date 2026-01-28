@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { usePresentationStore } from '@/stores'
+import { usePresentationStore } from '@core/stores'
 import { FileMenu } from '../toolbar/FileMenu'
 import { InsertMenu } from '../toolbar/InsertMenu'
 import { TextTools } from '../toolbar/TextTools'
 import { ShapeTools } from '../toolbar/ShapeTools'
-import { exportToPPTX, downloadPPTX } from '@/lib/export'
+import { exportToPPTX, downloadPPTX } from '@core/lib/export'
 import { Save, Download, Check } from 'lucide-react'
 
 export function EditorToolbar() {

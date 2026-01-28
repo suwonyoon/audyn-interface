@@ -1,4 +1,4 @@
-import type { Slide } from '@/types'
+import type { Slide } from '@core/types'
 
 interface SlideThumbnailProps {
   slide: Slide

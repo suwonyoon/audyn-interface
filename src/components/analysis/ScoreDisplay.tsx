@@ -1,4 +1,4 @@
-import type { MetricScore } from '@/types'
+import type { MetricScore } from '@core/types'
 
 interface ScoreDisplayProps {
   score: number

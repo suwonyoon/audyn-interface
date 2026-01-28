@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { usePresentationStore, useSectionsStore } from '@/stores'
+import { usePresentationStore, useSectionsStore } from '@core/stores'
 import { Plus, X, GripVertical, Image as ImageIcon, FileText, ChevronDown, ChevronRight } from 'lucide-react'
-import type { Slide, TextElement, ShapeElement } from '@/types'
+import type { Slide, TextElement, ShapeElement } from '@core/types'
 
 // Extract text content from a slide for preview
 function getSlidePreviewText(slide: Slide): { title: string; subtitle: string } {
@@ -72,17 +72,17 @@ export function SlideSectionPanel() {
 
   return (
     <div className="flex-1 bg-white flex flex-col">
-      <div className="p-4 border-b">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-sm font-semibold text-gray-700">Slides & Sections</h2>
-          <p className="text-xs text-gray-500 mt-1">
-            Review your slides and click between them to create section dividers. Expand speaker notes to preview content.
+      <div className="p-2 tp:p-4 border-b">
+        <div>
+          <h2 className="text-xs tp:text-sm font-semibold text-gray-700">Slides & Sections</h2>
+          <p className="text-xs text-gray-500 mt-1 hidden tp:block">
+            Review your slides and click between them to create section dividers.
           </p>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4">
-        <div className="max-w-3xl mx-auto space-y-1">
+      <div className="flex-1 overflow-y-auto p-2 tp:p-4">
+        <div className="space-y-1">
           {presentation.slides.map((slide, index) => {
             const { title, subtitle } = getSlidePreviewText(slide)
             const slideHasImages = hasImages(slide)
@@ -99,16 +99,16 @@ export function SlideSectionPanel() {
                 />
 
                 {/* Slide thumbnail with text preview */}
-                <div className="p-2 rounded-lg hover:bg-gray-50 transition-colors">
-                  <div className="flex gap-3">
+                <div className="p-1.5 tp:p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                  <div className="flex gap-2 tp:gap-3">
                     {/* Slide number */}
-                    <div className="flex-shrink-0 w-8 text-sm text-gray-400 font-medium pt-1 text-right">
+                    <div className="flex-shrink-0 w-6 tp:w-8 text-xs tp:text-sm text-gray-400 font-medium pt-1 text-right">
                       {index + 1}
                     </div>
 
                     {/* Mini slide visual */}
                     <div
-                      className="flex-shrink-0 w-24 h-16 rounded border border-gray-200 overflow-hidden relative"
+                      className="flex-shrink-0 w-16 h-10 tp:w-24 tp:h-16 rounded border border-gray-200 overflow-hidden relative"
                       style={{ backgroundColor: slide.background?.color || '#ffffff' }}
                     >
                       {/* Show mini representation of content */}
@@ -172,20 +172,20 @@ export function SlideSectionPanel() {
                     <div className="flex-1 min-w-0 py-0.5">
                       {title ? (
                         <>
-                          <p className="text-sm font-medium text-gray-900 truncate leading-tight">
-                            {title.length > 60 ? title.substring(0, 60) + '...' : title}
+                          <p className="text-xs tp:text-sm font-medium text-gray-900 truncate leading-tight">
+                            {title}
                           </p>
                           {subtitle && (
-                            <p className="text-xs text-gray-500 truncate leading-tight mt-0.5">
-                              {subtitle.length > 80 ? subtitle.substring(0, 80) + '...' : subtitle}
+                            <p className="text-xs text-gray-500 truncate leading-tight mt-0.5 hidden tp:block">
+                              {subtitle}
                             </p>
                           )}
                         </>
                       ) : (
-                        <p className="text-sm text-gray-400 italic">
+                        <p className="text-xs tp:text-sm text-gray-400 italic">
                           {slideHasImages ? (
                             <span className="flex items-center gap-1">
-                              <ImageIcon className="w-4 h-4" />
+                              <ImageIcon className="w-3.5 h-3.5 tp:w-4 tp:h-4" />
                               Image slide
                             </span>
                           ) : (
@@ -197,15 +197,16 @@ export function SlideSectionPanel() {
                       {slide.notes && (
                         <button
                           onClick={() => toggleNotes(slide.id)}
-                          className="mt-1.5 flex items-center gap-1 text-xs text-amber-600 hover:text-amber-700 transition-colors"
+                          className="mt-1 tp:mt-1.5 flex items-center gap-1 text-xs text-amber-600 hover:text-amber-700 transition-colors"
                         >
                           {expandedNotes.has(slide.id) ? (
-                            <ChevronDown className="w-3.5 h-3.5" />
+                            <ChevronDown className="w-3 h-3 tp:w-3.5 tp:h-3.5" />
                           ) : (
-                            <ChevronRight className="w-3.5 h-3.5" />
+                            <ChevronRight className="w-3 h-3 tp:w-3.5 tp:h-3.5" />
                           )}
-                          <FileText className="w-3.5 h-3.5" />
-                          <span>Speaker Notes</span>
+                          <FileText className="w-3 h-3 tp:w-3.5 tp:h-3.5" />
+                          <span className="hidden tp:inline">Speaker Notes</span>
+                          <span className="tp:hidden">Notes</span>
                         </button>
                       )}
                     </div>
@@ -213,7 +214,7 @@ export function SlideSectionPanel() {
 
                   {/* Expanded notes */}
                   {slide.notes && expandedNotes.has(slide.id) && (
-                    <div className="mt-2 ml-11 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                    <div className="mt-2 ml-6 tp:ml-11 p-2 tp:p-3 bg-amber-50 rounded-lg border border-amber-200">
                       <p className="text-xs text-amber-800 whitespace-pre-wrap leading-relaxed">
                         {slide.notes}
                       </p>
@@ -239,8 +240,8 @@ export function SlideSectionPanel() {
       </div>
 
       {/* Section count */}
-      <div className="p-4 border-t bg-gray-50">
-        <div className="max-w-3xl mx-auto text-sm text-gray-600">
+      <div className="p-2 tp:p-4 border-t bg-gray-50">
+        <div className="text-xs tp:text-sm text-gray-600">
           <span className="font-medium">{sections.length}</span> section{sections.length !== 1 ? 's' : ''}
           {' '}&middot;{' '}
           <span className="font-medium">{presentation.slides.length}</span> slides
@@ -270,19 +271,19 @@ function SectionDivider({
   if (section) {
     // Show section header
     return (
-      <div className="py-2">
-        <div className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg border border-blue-200">
-          <GripVertical className="w-3 h-3 text-blue-400" />
+      <div className="py-1.5 tp:py-2">
+        <div className="flex items-center gap-1.5 tp:gap-2 p-1.5 tp:p-2 bg-blue-50 rounded-lg border border-blue-200">
+          <GripVertical className="w-3 h-3 text-blue-400 flex-shrink-0" />
           <input
             type="text"
             value={section.name}
             onChange={(e) => onRename(section.id, e.target.value)}
-            className="flex-1 text-sm font-medium text-blue-700 bg-transparent border-none focus:outline-none focus:ring-0"
+            className="flex-1 min-w-0 text-xs tp:text-sm font-medium text-blue-700 bg-transparent border-none focus:outline-none focus:ring-0"
           />
           {!isFirst && (
             <button
               onClick={() => onRemove(section.id)}
-              className="p-1 text-blue-400 hover:text-red-500 transition-colors"
+              className="p-1 text-blue-400 hover:text-red-500 transition-colors flex-shrink-0"
               title="Remove section"
             >
               <X className="w-3 h-3" />
@@ -298,15 +299,16 @@ function SectionDivider({
   if (isLast) return null
 
   return (
-    <div className="h-6 flex items-center group">
+    <div className="h-5 tp:h-6 flex items-center group">
       <button
         onClick={onAdd}
         className="w-full flex items-center justify-center py-1 rounded hover:bg-blue-50 transition-colors"
       >
         <div className="flex-1 border-t border-transparent group-hover:border-blue-300 border-dashed" />
-        <span className="px-2 flex items-center gap-1 text-xs text-transparent group-hover:text-blue-500">
+        <span className="px-1.5 tp:px-2 flex items-center gap-1 text-xs text-transparent group-hover:text-blue-500">
           <Plus className="w-3 h-3" />
-          Add Section
+          <span className="hidden tp:inline">Add Section</span>
+          <span className="tp:hidden">Add</span>
         </span>
         <div className="flex-1 border-t border-transparent group-hover:border-blue-300 border-dashed" />
       </button>

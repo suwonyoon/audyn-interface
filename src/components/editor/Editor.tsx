@@ -1,10 +1,10 @@
-import { usePresentationStore, useModeStore, useAnalysisStore } from '@/stores'
+import { usePresentationStore, useModeStore, useAnalysisStore } from '@core/stores'
 import { EditorCanvas } from './EditorCanvas'
 import { EditorToolbar } from './EditorToolbar'
 import { WelcomeScreen } from './WelcomeScreen'
 import { SlidePanel } from '../slides/SlidePanel'
 import { PropertiesPanel } from '../properties/PropertiesPanel'
-import { useKeyboardShortcuts } from '@/hooks'
+import { useKeyboardShortcuts } from '@core/hooks'
 import { ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react'
 
 export function Editor() {

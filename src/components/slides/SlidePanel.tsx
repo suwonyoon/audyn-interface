@@ -1,7 +1,7 @@
-import { usePresentationStore } from '@/stores'
+import { usePresentationStore } from '@core/stores'
 import { SlideThumbnail } from './SlideThumbnail'
 import { Plus, Copy, Trash2 } from 'lucide-react'
-import type { SlideLayoutType } from '@/types'
+import type { SlideLayoutType } from '@core/types'
 
 export function SlidePanel() {
   const {

@@ -1,13 +1,22 @@
 import { useState, useMemo } from 'react'
-import { useAnalysisStore, useModeStore, usePresentationStore } from '@/stores'
+import { useAnalysisStore, useModeStore, usePresentationStore } from '@core/stores'
+import { usePlatformOptional } from '@core/platform'
 import { BarChart3, User, Users } from 'lucide-react'
 import { ScoreDisplay } from './ScoreDisplay'
 import { ScoreTimeline } from './ScoreTimeline'
 import { SlideGallery } from './SlideGallery'
 import { CompactMetricBreakdown } from './MetricBreakdown'
-import type { SlideAnalysis, AgentSectionEvaluation } from '@/types'
+import { SectionBlockSelector } from './SectionBlockSelector'
+import type { SlideAnalysis, AgentSectionEvaluation } from '@core/types'
 
-export function AnalysisMainPanel() {
+interface AnalysisMainPanelProps {
+  isCompact?: boolean
+}
+
+export function AnalysisMainPanel({ isCompact = false }: AnalysisMainPanelProps) {
+  const platform = usePlatformOptional()
+  const isOffice = platform?.platform === 'office'
+
   const { goToEdit } = useModeStore()
   const { presentation, setCurrentSlide } = usePresentationStore()
   const {
@@ -19,12 +28,33 @@ export function AnalysisMainPanel() {
     markCommentUnresolved,
     getScoreTimeline,
     getSectionEvaluation,
+    getSectionChangeStatus,
   } = useAnalysisStore()
 
   // Track which agent is selected (null = show aggregated/all)
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null)
 
   const scoreTimeline = getScoreTimeline()
+
+  // Compute section scores and change statuses for the block selector
+  const sectionScores = useMemo(() => {
+    if (!scoredResult?.sectionEvaluations) return new Map<string, number>()
+    const map = new Map<string, number>()
+    for (const sectionEval of scoredResult.sectionEvaluations) {
+      map.set(sectionEval.sectionId, sectionEval.averageScore)
+    }
+    return map
+  }, [scoredResult])
+
+  const sectionChangeStatus = useMemo(() => {
+    if (!currentAnalysis || !presentation) return new Map()
+    const map = new Map()
+    for (const section of currentAnalysis.sections) {
+      const status = getSectionChangeStatus(section.sectionId, presentation.slides)
+      map.set(section.sectionId, status)
+    }
+    return map
+  }, [currentAnalysis, presentation, getSectionChangeStatus])
 
   if (!currentAnalysis) {
     return (
@@ -46,9 +76,19 @@ export function AnalysisMainPanel() {
     )
   }
 
-  const handleGoToSlide = (slideIndex: number) => {
-    setCurrentSlide(slideIndex)
-    goToEdit()
+  const handleGoToSlide = async (slideIndex: number) => {
+    if (isOffice && platform) {
+      // Office add-in: Navigate PowerPoint to the slide
+      try {
+        await platform.navigateToSlide(slideIndex)
+      } catch (err) {
+        console.error('Failed to navigate to slide:', err)
+      }
+    } else {
+      // Web platform: Go to editor mode
+      setCurrentSlide(slideIndex)
+      goToEdit()
+    }
   }
 
   const handleSectionClick = (sectionId: string, agentId: string | null) => {
@@ -81,25 +121,39 @@ export function AnalysisMainPanel() {
   }, [filteredSlides])
 
   return (
-    <div className="flex-1 overflow-y-auto p-6">
-      <div className="max-w-4xl">
+    <div className={`flex-1 overflow-y-auto ${isCompact ? 'p-3' : 'p-6'}`}>
+      <div className={isCompact ? '' : 'max-w-4xl'}>
+        {/* Section Block Selector (compact mode only) */}
+        {isCompact && currentAnalysis.sections.length > 1 && (
+          <div className="mb-3">
+            <SectionBlockSelector
+              sections={currentAnalysis.sections}
+              selectedSectionId={selectedSectionId || currentAnalysis.sections[0]?.sectionId}
+              onSelectSection={setSelectedSection}
+              sectionChangeStatus={sectionChangeStatus}
+              sectionScores={sectionScores}
+            />
+          </div>
+        )}
+
         {/* Score Timeline (if scored) */}
         {scoredResult && scoreTimeline.length > 0 && (
-          <div className="mb-6">
+          <div className={isCompact ? 'mb-3' : 'mb-6'}>
             <ScoreTimeline
               data={scoreTimeline}
               selectedAgentId={selectedAgentId}
               onSectionClick={handleSectionClick}
+              compact={isCompact}
             />
           </div>
         )}
 
         {/* Section Summary */}
-        <div className="bg-white rounded-lg border shadow-sm p-6 mb-6">
+        <div className={`bg-white rounded-lg border shadow-sm ${isCompact ? 'p-4' : 'p-6'} mb-4`}>
           <div className="flex items-start justify-between mb-4">
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <h2 className="text-lg font-semibold text-gray-900">
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                <h2 className={`font-semibold text-gray-900 ${isCompact ? 'text-base' : 'text-lg'}`}>
                   {selectedSection.sectionName}
                 </h2>
                 {selectedAgentId ? (

@@ -1,5 +1,5 @@
-import { usePresentationStore } from '@/stores'
-import type { ShapeElement } from '@/types'
+import { usePresentationStore } from '@core/stores'
+import type { ShapeElement } from '@core/types'
 
 interface ShapePropertiesProps {
   element: ShapeElement
