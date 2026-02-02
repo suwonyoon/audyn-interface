@@ -83,6 +83,10 @@ export interface AnalysisProgress {
   totalSlides: number
   totalAgents: number
   percentComplete: number
+  // Section tracking (for section-based analysis)
+  currentSectionIndex?: number
+  currentSectionName?: string
+  totalSections?: number
 }
 
 // API Key configuration for AI providers

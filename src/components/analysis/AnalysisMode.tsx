@@ -10,7 +10,7 @@ import { usePlatformOptional } from '@core/platform'
 import { AnalysisProgress } from './AnalysisProgress'
 import { AnalysisSidebar } from './AnalysisSidebar'
 import { AnalysisMainPanel } from './AnalysisMainPanel'
-import { ArrowLeft, Edit, RefreshCw, BarChart3, AlertCircle, FileText, ChevronDown } from 'lucide-react'
+import { ArrowLeft, Edit, RefreshCw, BarChart3, AlertCircle, FileText, ChevronDown, CheckCircle2 } from 'lucide-react'
 
 export function AnalysisMode() {
   const platform = usePlatformOptional()
@@ -26,8 +26,11 @@ export function AnalysisMode() {
     error,
     startScoredAnalysis,
     reanalyzeFromSection,
+    reanalyzeSingleSection,
+    reanalyzeResolvedComments,
     clearAnalysis,
     getUnresolvedCommentCount,
+    getResolvedCommentCount,
     getSectionChangeStatus,
   } = useAnalysisStore()
 
@@ -132,6 +135,33 @@ export function AnalysisMode() {
     setReanalyzeMenuOpen(false)
   }
 
+  const handleReanalyzeSingleSection = (sectionIndex: number) => {
+    if (presentation && apiKeyConfig) {
+      reanalyzeSingleSection(
+        sectionIndex,
+        presentation,
+        sections,
+        enabledAgents,
+        enabledAgentMetrics,
+        apiKeyConfig
+      )
+    }
+    setReanalyzeMenuOpen(false)
+  }
+
+  const handleReanalyzeResolvedComments = () => {
+    if (presentation && apiKeyConfig) {
+      reanalyzeResolvedComments(
+        presentation,
+        sections,
+        enabledAgents,
+        enabledAgentMetrics,
+        apiKeyConfig
+      )
+    }
+    setReanalyzeMenuOpen(false)
+  }
+
   if (!presentation) return null
 
   // Show progress while analyzing
@@ -188,6 +218,7 @@ export function AnalysisMode() {
   }
 
   const unresolvedCount = getUnresolvedCommentCount()
+  const resolvedCount = getResolvedCommentCount()
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
@@ -242,8 +273,28 @@ export function AnalysisMode() {
                   Re-analyze Everything
                 </button>
 
+                {/* Re-analyze addressed comments option */}
+                <button
+                  onClick={handleReanalyzeResolvedComments}
+                  disabled={resolvedCount === 0}
+                  className={`w-full flex items-center gap-2 px-3 tp:px-4 py-2 text-left text-xs tp:text-sm ${
+                    resolvedCount > 0
+                      ? 'text-gray-700 hover:bg-gray-50'
+                      : 'text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  <CheckCircle2 className={`w-3.5 h-3.5 tp:w-4 tp:h-4 ${resolvedCount > 0 ? 'text-green-600' : ''}`} />
+                  <span className="flex-1">Re-analyze Addressed</span>
+                  {resolvedCount > 0 && (
+                    <span className="px-1.5 py-0.5 text-xs bg-green-100 text-green-700 rounded-full">
+                      {resolvedCount}
+                    </span>
+                  )}
+                </button>
+
                 {currentAnalysis && currentAnalysis.sections.length > 1 && (
                   <>
+                    {/* Re-analyze from section (this section and all following) */}
                     <div className="border-t border-gray-100 my-1" />
                     <div className="px-3 tp:px-4 py-1 text-xs font-medium text-gray-500">
                       Re-analyze from section...
@@ -275,6 +326,38 @@ export function AnalysisMode() {
                                 (all)
                               </span>
                             )}
+                          </button>
+                        )
+                      })
+                    })()}
+
+                    {/* Re-analyze only a single section */}
+                    <div className="border-t border-gray-100 my-1" />
+                    <div className="px-3 tp:px-4 py-1 text-xs font-medium text-gray-500">
+                      Re-analyze only section...
+                    </div>
+
+                    {(() => {
+                      const sortedSections = [...sections].sort((a, b) => a.afterSlideIndex - b.afterSlideIndex)
+                      return sortedSections.map((section, index) => {
+                        const changeStatus = sectionChangeStatuses.get(section.id)
+                        const isChanged = changeStatus === 'changed'
+
+                        return (
+                          <button
+                            key={`single-${section.id}`}
+                            onClick={() => handleReanalyzeSingleSection(index)}
+                            className="w-full flex items-center gap-2 px-3 tp:px-4 py-2 text-left text-xs tp:text-sm text-gray-700 hover:bg-gray-50"
+                          >
+                            {/* Change indicator */}
+                            {isChanged ? (
+                              <span className="w-2 h-2 rounded-full bg-yellow-400 flex-shrink-0" title="Changed since last analysis" />
+                            ) : (
+                              <span className="w-2 h-2 rounded-full bg-gray-300 flex-shrink-0" />
+                            )}
+                            <span className="truncate">
+                              §{index + 1}: {section.name}
+                            </span>
                           </button>
                         )
                       })

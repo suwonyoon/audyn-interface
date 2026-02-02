@@ -1,16 +1,183 @@
+/* Google Fonts - Inter for UI, JetBrains Mono for data */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-* {
-  box-sizing: border-box;
+/* Base layer customizations */
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply font-sans text-ink-800 bg-ink-50;
+    margin: 0;
+  }
+
+  /* Typography scale */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-semibold tracking-tight;
+  }
+
+  /* Score values use mono font */
+  .score-value {
+    @apply font-mono font-bold tabular-nums;
+  }
+
+  /* Labels use uppercase styling */
+  .label {
+    @apply text-xs font-medium uppercase tracking-wider text-ink-500;
+  }
 }
 
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* Component utilities */
+@layer components {
+  /* Editorial card with refined shadow */
+  .card {
+    @apply bg-white rounded-xl border border-ink-200 shadow-card;
+  }
+
+  .card-hover {
+    @apply transition-all duration-200 ease-smooth hover:shadow-card-hover hover:-translate-y-0.5;
+  }
+
+  /* Score color utilities */
+  .score-critical {
+    @apply text-score-critical bg-score-critical-light;
+  }
+
+  .score-caution {
+    @apply text-score-caution bg-score-caution-light;
+  }
+
+  .score-success {
+    @apply text-score-success bg-score-success-light;
+  }
+
+  /* Score badge with pill shape */
+  .score-badge {
+    @apply inline-flex items-center px-2.5 py-1 rounded-full font-mono font-semibold text-sm;
+  }
+
+  /* Floating tooltip */
+  .tooltip-float {
+    @apply absolute z-50 px-3 py-2 bg-ink-900 text-white text-sm rounded-lg shadow-lifted;
+    @apply backdrop-blur-sm;
+  }
+
+  .tooltip-float::after {
+    content: '';
+    @apply absolute left-1/2 -translate-x-1/2 border-4 border-transparent;
+    bottom: -8px;
+    border-top-color: theme('colors.ink.900');
+  }
+
+  /* Section card with left border accent */
+  .section-card {
+    @apply relative pl-4 border-l-4 rounded-r-lg bg-white;
+    @apply transition-all duration-200 ease-smooth;
+  }
+
+  .section-card:hover {
+    @apply translate-x-1 shadow-card;
+  }
+
+  /* Pill selector button */
+  .pill-button {
+    @apply px-4 py-2 rounded-full text-sm font-medium;
+    @apply transition-all duration-150 ease-smooth;
+  }
+
+  .pill-button-active {
+    @apply bg-audyn-600 text-white shadow-glow-blue;
+  }
+
+  .pill-button-inactive {
+    @apply bg-ink-100 text-ink-600 hover:bg-ink-200;
+  }
+
+  /* Progress bar with shimmer */
+  .progress-bar {
+    @apply relative h-2 bg-ink-200 rounded-full overflow-hidden;
+  }
+
+  .progress-bar-fill {
+    @apply h-full rounded-full transition-all duration-500 ease-smooth;
+  }
+
+  .progress-bar-shimmer {
+    @apply absolute inset-0 bg-shimmer-gradient bg-[length:200%_100%] animate-shimmer;
+  }
+
+  /* Metric bar (thicker variant) */
+  .metric-bar {
+    @apply h-1.5 bg-ink-200 rounded-full overflow-hidden;
+  }
+
+  .metric-bar-thick {
+    @apply h-2.5 bg-ink-200 rounded-full overflow-hidden;
+  }
+
+  /* Evidence blockquote */
+  .evidence-quote {
+    @apply pl-4 border-l-2 border-ink-300 italic text-ink-600;
+  }
+
+  /* Thumbnail with inner shadow */
+  .thumbnail {
+    @apply relative overflow-hidden rounded-lg shadow-inner-subtle;
+  }
+
+  .thumbnail-hover {
+    @apply transition-all duration-200 ease-smooth;
+    @apply hover:scale-[1.02] hover:shadow-card-hover;
+  }
+
+  /* Glow ring for selected items */
+  .glow-ring-blue {
+    @apply ring-2 ring-audyn-400 ring-offset-2;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+  }
+
+  /* Fade edges for scroll containers */
+  .scroll-fade-x {
+    mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+  }
+
+  /* Animated scanning line for loading states */
+  .scan-line {
+    @apply absolute left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-audyn-500 to-transparent;
+    animation: scan 2s ease-in-out infinite;
+  }
+
+  @keyframes scan {
+    0%, 100% { top: 0; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+  }
+
+  /* Animated ellipsis */
+  .animated-ellipsis::after {
+    content: '';
+    animation: ellipsis 1.5s steps(4, end) infinite;
+  }
+
+  @keyframes ellipsis {
+    0% { content: ''; }
+    25% { content: '.'; }
+    50% { content: '..'; }
+    75% { content: '...'; }
+  }
 }
 
 /* Custom scrollbar */
@@ -20,14 +187,32 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  @apply bg-ink-100 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
+  @apply bg-ink-300 rounded-full;
+  @apply hover:bg-ink-400;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #a1a1a1;
+/* Thin scrollbar variant */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .animate-draw-line,
+  .animate-pop-in,
+  .animate-pulse-glow,
+  .animate-shimmer {
+    animation: none !important;
+  }
 }

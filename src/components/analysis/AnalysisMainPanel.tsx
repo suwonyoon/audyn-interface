@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useAnalysisStore, useModeStore, usePresentationStore } from '@core/stores'
 import { usePlatformOptional } from '@core/platform'
-import { BarChart3, User, Users } from 'lucide-react'
+import { BarChart3, User, Users, ChevronRight } from 'lucide-react'
 import { ScoreDisplay } from './ScoreDisplay'
 import { ScoreTimeline } from './ScoreTimeline'
 import { SlideGallery } from './SlideGallery'
@@ -11,6 +11,17 @@ import type { SlideAnalysis, AgentSectionEvaluation } from '@core/types'
 
 interface AnalysisMainPanelProps {
   isCompact?: boolean
+}
+
+// Score color utilities
+function getScoreColor(score: number): { bg: string; text: string; fill: string } {
+  if (score <= 3) {
+    return { bg: 'bg-score-critical-light', text: 'text-score-critical', fill: '#EF4444' }
+  } else if (score <= 5) {
+    return { bg: 'bg-score-caution-light', text: 'text-score-caution', fill: '#F59E0B' }
+  } else {
+    return { bg: 'bg-score-success-light', text: 'text-score-success', fill: '#22C55E' }
+  }
 }
 
 export function AnalysisMainPanel({ isCompact = false }: AnalysisMainPanelProps) {
@@ -58,8 +69,14 @@ export function AnalysisMainPanel({ isCompact = false }: AnalysisMainPanelProps)
 
   if (!currentAnalysis) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <p className="text-gray-500">No analysis results yet.</p>
+      <div className="flex-1 flex items-center justify-center bg-ink-50">
+        <div className="text-center">
+          <div className="w-16 h-16 rounded-full bg-ink-100 flex items-center justify-center mx-auto mb-4">
+            <BarChart3 className="w-8 h-8 text-ink-400" />
+          </div>
+          <p className="text-ink-500 font-medium">No analysis results yet</p>
+          <p className="text-ink-400 text-sm mt-1">Run an analysis to see results</p>
+        </div>
       </div>
     )
   }
@@ -70,22 +87,20 @@ export function AnalysisMainPanel({ isCompact = false }: AnalysisMainPanelProps)
 
   if (!selectedSection) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <p className="text-gray-500">No sections found.</p>
+      <div className="flex-1 flex items-center justify-center bg-ink-50">
+        <p className="text-ink-500">No sections found.</p>
       </div>
     )
   }
 
   const handleGoToSlide = async (slideIndex: number) => {
     if (isOffice && platform) {
-      // Office add-in: Navigate PowerPoint to the slide
       try {
         await platform.navigateToSlide(slideIndex)
       } catch (err) {
         console.error('Failed to navigate to slide:', err)
       }
     } else {
-      // Web platform: Go to editor mode
       setCurrentSlide(slideIndex)
       goToEdit()
     }
@@ -121,11 +136,11 @@ export function AnalysisMainPanel({ isCompact = false }: AnalysisMainPanelProps)
   }, [filteredSlides])
 
   return (
-    <div className={`flex-1 overflow-y-auto ${isCompact ? 'p-3' : 'p-6'}`}>
-      <div className={isCompact ? '' : 'max-w-4xl'}>
+    <div className={`flex-1 overflow-y-auto bg-ink-50 ${isCompact ? 'p-4' : 'p-6'}`}>
+      <div className={isCompact ? '' : 'max-w-4xl mx-auto'}>
         {/* Section Block Selector (compact mode only) */}
         {isCompact && currentAnalysis.sections.length > 1 && (
-          <div className="mb-3">
+          <div className="mb-4">
             <SectionBlockSelector
               sections={currentAnalysis.sections}
               selectedSectionId={selectedSectionId || currentAnalysis.sections[0]?.sectionId}
@@ -138,7 +153,7 @@ export function AnalysisMainPanel({ isCompact = false }: AnalysisMainPanelProps)
 
         {/* Score Timeline (if scored) */}
         {scoredResult && scoreTimeline.length > 0 && (
-          <div className={isCompact ? 'mb-3' : 'mb-6'}>
+          <div className={isCompact ? 'mb-4' : 'mb-6'}>
             <ScoreTimeline
               data={scoreTimeline}
               selectedAgentId={selectedAgentId}
@@ -148,98 +163,120 @@ export function AnalysisMainPanel({ isCompact = false }: AnalysisMainPanelProps)
           </div>
         )}
 
-        {/* Section Summary */}
-        <div className={`bg-white rounded-lg border shadow-sm ${isCompact ? 'p-4' : 'p-6'} mb-4`}>
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2 flex-wrap">
-                <h2 className={`font-semibold text-gray-900 ${isCompact ? 'text-base' : 'text-lg'}`}>
-                  {selectedSection.sectionName}
-                </h2>
-                {selectedAgentId ? (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full">
-                    <User className="w-3 h-3" />
-                    {selectedAgentEval?.agentName || 'Agent'}
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">
-                    <Users className="w-3 h-3" />
-                    All Agents
-                  </span>
-                )}
+        {/* Section Summary Card - Magazine Layout */}
+        <div className={`card ${isCompact ? 'p-4' : 'p-6'} mb-6`}>
+          {/* Section Header with Score */}
+          <div className="flex items-start gap-6 mb-6">
+            <div className="flex-1 min-w-0">
+              {/* Breadcrumb / Label */}
+              <div className="flex items-center gap-2 mb-2">
+                <span className="label text-[10px]">Section Analysis</span>
+                <ChevronRight className="w-3 h-3 text-ink-300" />
+                <span className="text-[10px] text-ink-500">
+                  {currentAnalysis.sections.findIndex(s => s.sectionId === selectedSection.sectionId) + 1} of {currentAnalysis.sections.length}
+                </span>
               </div>
-              <p className="text-sm text-gray-600">
+
+              {/* Section Title */}
+              <h2 className={`font-display font-semibold text-ink-900 ${isCompact ? 'text-lg' : 'text-xl'} mb-3`}>
+                {selectedSection.sectionName}
+              </h2>
+
+              {/* Agent filter segmented control */}
+              <div className="flex flex-wrap items-center gap-2 mb-4">
+                <button
+                  onClick={() => setSelectedAgentId(null)}
+                  className={`pill-button ${!selectedAgentId ? 'pill-button-active' : 'pill-button-inactive'}`}
+                >
+                  <Users className="w-3.5 h-3.5 mr-1.5 inline" />
+                  All Agents
+                </button>
+                {sectionEval?.agentEvaluations.map((agentEval) => (
+                  <button
+                    key={agentEval.agentId}
+                    onClick={() => setSelectedAgentId(agentEval.agentId)}
+                    className={`pill-button ${selectedAgentId === agentEval.agentId ? 'pill-button-active' : 'pill-button-inactive'}`}
+                  >
+                    <User className="w-3.5 h-3.5 mr-1.5 inline" />
+                    {agentEval.agentName}
+                  </button>
+                ))}
+              </div>
+
+              {/* Summary text */}
+              <p className="text-sm text-ink-600 leading-relaxed">
                 {selectedAgentId && selectedAgentEval?.sectionSummary
                   ? selectedAgentEval.sectionSummary
                   : selectedSection.summary}
               </p>
             </div>
 
-            {/* Section Score */}
+            {/* Section Score - Floating right */}
             {sectionEval && (
-              <div className="flex-shrink-0 ml-4">
+              <div className="flex-shrink-0">
                 <ScoreDisplay
                   score={
                     selectedAgentId && selectedAgentEval
                       ? selectedAgentEval.weightedTotal
                       : sectionEval.averageScore
                   }
-                  size="sm"
-                  showLabel={false}
+                  size={isCompact ? 'sm' : 'md'}
+                  showLabel={!isCompact}
                 />
               </div>
             )}
           </div>
 
-          {/* Agent Score Breakdown (only when showing all) */}
-          {!selectedAgentId && sectionEval && sectionEval.agentEvaluations.length > 0 && (
-            <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <BarChart3 className="w-4 h-4 text-gray-400" />
-                <h4 className="text-sm font-medium text-gray-700">
-                  Agent Scores for This Section
-                </h4>
+          {/* Agent Score Breakdown - Token Style */}
+          {!selectedAgentId && sectionEval && sectionEval.agentEvaluations.length > 1 && (
+            <div className="mb-6 p-4 bg-ink-50 rounded-xl border border-ink-100">
+              <div className="flex items-center gap-2 mb-3">
+                <BarChart3 className="w-4 h-4 text-ink-400" />
+                <h4 className="text-sm font-medium text-ink-700">Agent Scores</h4>
               </div>
               <div className="flex flex-wrap gap-2">
-                {sectionEval.agentEvaluations.map((agentEval) => (
-                  <button
-                    key={agentEval.agentId}
-                    onClick={() => setSelectedAgentId(agentEval.agentId)}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-white rounded border hover:border-blue-300 hover:bg-blue-50 transition-colors"
-                  >
-                    <span className="text-sm text-gray-700">
-                      {agentEval.agentName}
-                    </span>
-                    <span
-                      className={`text-sm font-semibold ${
-                        agentEval.weightedTotal >= 5
-                          ? 'text-green-600'
-                          : agentEval.weightedTotal >= 3
-                            ? 'text-yellow-600'
-                            : 'text-red-600'
-                      }`}
+                {sectionEval.agentEvaluations.map((agentEval) => {
+                  const colors = getScoreColor(agentEval.weightedTotal)
+                  return (
+                    <button
+                      key={agentEval.agentId}
+                      onClick={() => setSelectedAgentId(agentEval.agentId)}
+                      className="flex items-center gap-2 px-3 py-2 bg-white rounded-lg border border-ink-200 hover:border-audyn-300 hover:shadow-card transition-all duration-150 ease-smooth group"
                     >
-                      {agentEval.weightedTotal.toFixed(1)}
-                    </span>
-                  </button>
-                ))}
+                      {/* Agent avatar placeholder */}
+                      <div className="w-6 h-6 rounded-full bg-audyn-100 flex items-center justify-center">
+                        <User className="w-3.5 h-3.5 text-audyn-600" />
+                      </div>
+                      <span className="text-sm text-ink-700 font-medium group-hover:text-audyn-700">
+                        {agentEval.agentName}
+                      </span>
+                      <span
+                        className={`score-value text-sm px-2 py-0.5 rounded-full ${colors.bg} ${colors.text}`}
+                      >
+                        {agentEval.weightedTotal.toFixed(1)}
+                      </span>
+                    </button>
+                  )
+                })}
               </div>
             </div>
           )}
 
-          {/* Single Agent View - Show that agent's metrics */}
+          {/* Single Agent View - Metric details */}
           {selectedAgentId && selectedAgentEval && selectedAgentEval.metricScores.length > 0 && (
-            <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-              <div className="flex items-center justify-between mb-2">
+            <div className="mb-6 p-4 bg-audyn-50 rounded-xl border border-audyn-100">
+              <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <User className="w-4 h-4 text-blue-500" />
-                  <h4 className="text-sm font-medium text-blue-800">
+                  <div className="w-6 h-6 rounded-full bg-audyn-500 flex items-center justify-center">
+                    <User className="w-3.5 h-3.5 text-white" />
+                  </div>
+                  <h4 className="text-sm font-medium text-audyn-800">
                     {selectedAgentEval.agentName}'s Assessment
                   </h4>
                 </div>
                 <button
                   onClick={() => setSelectedAgentId(null)}
-                  className="text-xs text-blue-600 hover:text-blue-800"
+                  className="text-xs text-audyn-600 hover:text-audyn-800 font-medium"
                 >
                   Show all agents
                 </button>
@@ -253,33 +290,39 @@ export function AnalysisMainPanel({ isCompact = false }: AnalysisMainPanelProps)
             sectionEval &&
             sectionEval.agentEvaluations.length > 0 &&
             sectionEval.agentEvaluations[0].metricScores.length > 0 && (
-              <div className="mb-4">
+              <div className="mb-6">
+                <h4 className="text-sm font-medium text-ink-700 mb-3">Metric Breakdown</h4>
                 <CompactMetricBreakdown
                   metricScores={aggregateMetricScores(sectionEval.agentEvaluations)}
                 />
               </div>
             )}
 
-          {/* Comment count summary */}
-          <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
-            <span className="text-sm text-gray-600">
-              {filteredCommentCount} comment{filteredCommentCount !== 1 ? 's' : ''}
-              {selectedAgentId && ' from this agent'}
+          {/* Comment count footer */}
+          <div className="flex items-center justify-between pt-4 border-t border-ink-100">
+            <span className="text-sm text-ink-600">
+              <span className="score-value">{filteredCommentCount}</span> comment{filteredCommentCount !== 1 ? 's' : ''}
+              {selectedAgentId && <span className="text-ink-400 ml-1">from {selectedAgentEval?.agentName}</span>}
+            </span>
+            <span className="text-xs text-ink-400">
+              {selectedSection.slides.length} slide{selectedSection.slides.length !== 1 ? 's' : ''} in section
             </span>
           </div>
         </div>
 
         {/* Slide Gallery View */}
         {filteredSlides.length > 0 && presentation && (
-          <>
-            <h3 className="text-sm font-semibold text-gray-700 mb-4">
-              Slides in This Section
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-ink-700">
+                Slides in This Section
+              </h3>
               {selectedAgentId && (
-                <span className="ml-2 font-normal text-gray-500">
-                  (showing {selectedAgentEval?.agentName}'s comments only)
+                <span className="text-xs text-ink-500 bg-audyn-50 px-2 py-1 rounded-full">
+                  Showing {selectedAgentEval?.agentName}'s comments
                 </span>
               )}
-            </h3>
+            </div>
             <SlideGallery
               slides={filteredSlides}
               presentationSlides={presentation.slides}
@@ -287,12 +330,12 @@ export function AnalysisMainPanel({ isCompact = false }: AnalysisMainPanelProps)
               onResolveComment={markCommentResolved}
               onUnresolveComment={markCommentUnresolved}
             />
-          </>
+          </div>
         )}
 
         {selectedSection.slides.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-500">No slides in this section.</p>
+          <div className="card p-12 text-center">
+            <p className="text-ink-500">No slides in this section.</p>
           </div>
         )}
       </div>

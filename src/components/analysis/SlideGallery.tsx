@@ -9,6 +9,7 @@ import {
   Lightbulb,
   ExternalLink,
   MessageSquare,
+  ChevronRight,
 } from 'lucide-react'
 
 interface SlideGalleryProps {
@@ -22,35 +23,35 @@ interface SlideGalleryProps {
 const severityConfig = {
   error: {
     icon: AlertCircle,
-    bgColor: 'bg-red-50',
-    borderColor: 'border-red-200',
-    accentColor: 'bg-red-400',
-    textColor: 'text-red-700',
-    badgeColor: 'bg-red-500',
+    bgColor: 'bg-score-critical-light',
+    borderColor: 'border-score-critical/30',
+    accentColor: '#EF4444',
+    textColor: 'text-score-critical',
+    badgeColor: 'bg-score-critical',
   },
   warning: {
     icon: AlertTriangle,
-    bgColor: 'bg-orange-50',
-    borderColor: 'border-orange-200',
-    accentColor: 'bg-orange-400',
-    textColor: 'text-orange-700',
-    badgeColor: 'bg-orange-500',
+    bgColor: 'bg-score-caution-light',
+    borderColor: 'border-score-caution/30',
+    accentColor: '#F59E0B',
+    textColor: 'text-score-caution',
+    badgeColor: 'bg-score-caution',
   },
   suggestion: {
     icon: Lightbulb,
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200',
-    accentColor: 'bg-blue-400',
-    textColor: 'text-blue-700',
-    badgeColor: 'bg-blue-500',
+    bgColor: 'bg-audyn-50',
+    borderColor: 'border-audyn-200',
+    accentColor: '#3B82F6',
+    textColor: 'text-audyn-600',
+    badgeColor: 'bg-audyn-500',
   },
   info: {
     icon: Info,
-    bgColor: 'bg-gray-50',
-    borderColor: 'border-gray-200',
-    accentColor: 'bg-gray-400',
-    textColor: 'text-gray-700',
-    badgeColor: 'bg-gray-500',
+    bgColor: 'bg-ink-50',
+    borderColor: 'border-ink-200',
+    accentColor: '#78716C',
+    textColor: 'text-ink-600',
+    badgeColor: 'bg-ink-500',
   },
 }
 
@@ -72,11 +73,11 @@ export function SlideGallery({
 
   return (
     <div className="space-y-4">
-      {/* Slide Thumbnail Gallery */}
-      <div className={`grid gap-2 ${
+      {/* Slide Thumbnail Gallery - Contact Sheet Style */}
+      <div className={`grid gap-3 ${
         isOffice
-          ? 'grid-cols-2 sm:grid-cols-3'  // Compact grid for Office task pane
-          : 'grid-cols-4 gap-3 sm:grid-cols-5 lg:grid-cols-6'
+          ? 'grid-cols-2 sm:grid-cols-3'
+          : 'grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6'
       }`}>
         {slides.map((slideAnalysis) => {
           const slide = presentationSlides.find(
@@ -107,26 +108,34 @@ export function SlideGallery({
 
       {/* Selected Slide Comments Panel */}
       {selectedSlide && (
-        <div className="bg-white rounded-lg border overflow-hidden">
-          <div className="flex items-center justify-between p-4 border-b bg-gray-50">
-            <div className="flex items-center gap-2">
-              <span className="font-medium text-gray-900">
-                Slide {selectedSlide.slideIndex + 1}
-              </span>
-              <span className="text-sm text-gray-500">
-                {selectedSlide.comments.length} comment
-                {selectedSlide.comments.length !== 1 ? 's' : ''}
-              </span>
+        <div className="card overflow-hidden animate-fade-in">
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 border-b border-ink-100 bg-gradient-to-r from-ink-50 to-white">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-audyn-100 flex items-center justify-center">
+                <span className="score-value text-sm text-audyn-700">
+                  {selectedSlide.slideIndex + 1}
+                </span>
+              </div>
+              <div>
+                <span className="font-medium text-ink-800">
+                  Slide {selectedSlide.slideIndex + 1}
+                </span>
+                <span className="text-sm text-ink-500 ml-2">
+                  {selectedSlide.comments.length} comment{selectedSlide.comments.length !== 1 ? 's' : ''}
+                </span>
+              </div>
             </div>
             <button
               onClick={() => onGoToSlide(selectedSlide.slideIndex)}
-              className="flex items-center gap-1 px-2 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-audyn-600 hover:text-audyn-700 hover:bg-audyn-50 rounded-lg transition-colors duration-150"
             >
-              <ExternalLink className="w-4 h-4" />
-              {isOffice ? 'Go to Slide' : 'Edit Slide'}
+              <span className="font-medium">{isOffice ? 'Go to Slide' : 'Edit Slide'}</span>
+              <ExternalLink className="w-3.5 h-3.5" />
             </button>
           </div>
 
+          {/* Comments list */}
           {selectedSlide.comments.length > 0 ? (
             <div className="p-4 space-y-3">
               {selectedSlide.comments.map((comment) => (
@@ -139,9 +148,12 @@ export function SlideGallery({
               ))}
             </div>
           ) : (
-            <div className="p-8 text-center text-gray-500">
-              <MessageSquare className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-              <p>No comments for this slide</p>
+            <div className="p-12 text-center">
+              <div className="w-12 h-12 rounded-full bg-ink-100 flex items-center justify-center mx-auto mb-3">
+                <MessageSquare className="w-6 h-6 text-ink-400" />
+              </div>
+              <p className="text-ink-500 font-medium">No comments for this slide</p>
+              <p className="text-ink-400 text-sm mt-1">This slide passed all checks</p>
             </div>
           )}
         </div>
@@ -173,19 +185,25 @@ function SlideThumbnailCard({
   return (
     <div
       onClick={onClick}
-      className={`cursor-pointer rounded-lg overflow-hidden border-2 transition-all hover:shadow-md ${
-        isSelected
-          ? 'border-blue-500 shadow-md'
-          : 'border-gray-200 hover:border-gray-300'
-      }`}
+      className={`
+        cursor-pointer rounded-xl overflow-hidden transition-all duration-200 ease-smooth
+        thumbnail thumbnail-hover
+        ${isSelected
+          ? 'glow-ring-blue'
+          : 'border-2 border-transparent hover:border-ink-200'
+        }
+      `}
     >
       {/* Thumbnail Preview */}
       <div
         className="aspect-video relative overflow-hidden"
         style={{ backgroundColor }}
       >
+        {/* Inner shadow overlay */}
+        <div className="absolute inset-0 shadow-inner-subtle pointer-events-none" />
+
         {/* Simplified slide preview */}
-        <div className="absolute inset-0 p-1">
+        <div className="absolute inset-0 p-1.5">
           {slide.elements.slice(0, 5).map((element) => {
             const scale = 0.12
             const left = element.x * scale
@@ -197,7 +215,7 @@ function SlideThumbnailCard({
               return (
                 <div
                   key={element.id}
-                  className="absolute bg-gray-300/60 rounded-sm"
+                  className="absolute bg-ink-400/40 rounded-sm"
                   style={{
                     left: `${left}px`,
                     top: `${top}px`,
@@ -218,7 +236,7 @@ function SlideThumbnailCard({
                     top: `${top}px`,
                     width: `${width}px`,
                     height: `${height}px`,
-                    backgroundColor: element.fill.color || '#cccccc',
+                    backgroundColor: element.fill.color || '#D6D3D1',
                   }}
                 />
               )
@@ -228,7 +246,7 @@ function SlideThumbnailCard({
               return (
                 <div
                   key={element.id}
-                  className="absolute bg-gray-400/60 rounded-sm"
+                  className="absolute bg-ink-300/60 rounded-sm"
                   style={{
                     left: `${left}px`,
                     top: `${top}px`,
@@ -243,23 +261,29 @@ function SlideThumbnailCard({
           })}
         </div>
 
-        {/* Comment count badge */}
+        {/* Comment count badge - pill shaped, overlapping corner */}
         {commentCount > 0 && (
           <div
-            className={`absolute top-1 right-1 min-w-[20px] h-5 px-1.5 rounded-full flex items-center justify-center text-xs font-medium text-white ${
-              unresolvedCount > 0 ? 'bg-orange-500' : 'bg-green-500'
-            }`}
+            className={`
+              absolute -top-1 -right-1 min-w-[24px] h-6 px-2
+              rounded-full flex items-center justify-center
+              text-xs font-semibold text-white shadow-lifted
+              ${unresolvedCount > 0 ? 'bg-score-caution' : 'bg-score-success'}
+            `}
           >
             {commentCount}
           </div>
         )}
-      </div>
 
-      {/* Slide number */}
-      <div className="px-2 py-1.5 bg-gray-50 border-t">
-        <span className="text-xs font-medium text-gray-600">
-          Slide {slideIndex + 1}
-        </span>
+        {/* Bottom bar with gradient overlay */}
+        <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-black/60 to-transparent flex items-end justify-between px-2 pb-1.5">
+          <span className="text-[10px] font-medium text-white/90">
+            Slide {slideIndex + 1}
+          </span>
+          {isSelected && (
+            <ChevronRight className="w-3 h-3 text-white/80" />
+          )}
+        </div>
       </div>
     </div>
   )
@@ -277,59 +301,80 @@ function CommentItem({ comment, onResolve, onUnresolve }: CommentItemProps) {
 
   return (
     <div
-      className={`flex gap-3 p-3 rounded-lg border ${
-        comment.resolved
-          ? 'bg-gray-50 border-gray-200 opacity-60'
+      className={`
+        relative rounded-xl border overflow-hidden transition-all duration-200 ease-smooth
+        ${comment.resolved
+          ? 'bg-ink-50 border-ink-200 opacity-60'
           : `${config.bgColor} ${config.borderColor}`
-      }`}
+        }
+      `}
     >
+      {/* Left accent bar */}
       <div
-        className={`w-1 rounded-full ${
-          comment.resolved ? 'bg-gray-300' : config.accentColor
-        }`}
+        className="absolute left-0 top-0 bottom-0 w-1"
+        style={{ backgroundColor: comment.resolved ? '#D6D3D1' : config.accentColor }}
       />
-      <div className="flex-1">
-        <div className="flex items-center justify-between mb-1">
-          <div className="flex items-center gap-2">
+
+      <div className="p-4 pl-5">
+        {/* Header row */}
+        <div className="flex items-start justify-between gap-3 mb-2">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
             <Icon
-              className={`w-4 h-4 ${
-                comment.resolved ? 'text-gray-400' : config.textColor
+              className={`w-4 h-4 flex-shrink-0 ${
+                comment.resolved ? 'text-ink-400' : config.textColor
               }`}
             />
             <span
-              className={`text-sm font-medium ${
-                comment.resolved ? 'text-gray-500 line-through' : 'text-gray-900'
+              className={`font-medium text-sm ${
+                comment.resolved ? 'text-ink-500 line-through' : 'text-ink-800'
               }`}
             >
               {comment.title}
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500">{comment.agentName}</span>
+
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Agent name badge */}
+            <span className="text-[10px] text-ink-500 bg-white/60 px-2 py-0.5 rounded-full">
+              {comment.agentName}
+            </span>
+
+            {/* Resolve button */}
             <button
               onClick={comment.resolved ? onUnresolve : onResolve}
-              className={`p-1 rounded transition-colors ${
-                comment.resolved
-                  ? 'text-green-600 bg-green-100 hover:bg-green-200'
-                  : 'text-gray-400 hover:text-green-600 hover:bg-green-50'
-              }`}
+              className={`
+                w-7 h-7 rounded-full flex items-center justify-center transition-all duration-150
+                ${comment.resolved
+                  ? 'bg-score-success text-white hover:bg-score-success-dark'
+                  : 'bg-white/80 text-ink-400 hover:text-score-success hover:bg-score-success-light'
+                }
+              `}
               title={comment.resolved ? 'Mark as unresolved' : 'Mark as resolved'}
             >
               <Check className="w-4 h-4" />
             </button>
           </div>
         </div>
+
+        {/* Description */}
         <p
-          className={`text-sm ${
-            comment.resolved ? 'text-gray-400' : 'text-gray-600'
+          className={`text-sm leading-relaxed ${
+            comment.resolved ? 'text-ink-400' : 'text-ink-600'
           }`}
         >
           {comment.description}
         </p>
+
+        {/* Suggestion */}
         {comment.suggestion && !comment.resolved && (
-          <p className="text-sm text-blue-600 mt-2">
-            <span className="font-medium">Suggestion:</span> {comment.suggestion}
-          </p>
+          <div className="mt-3 p-2.5 bg-white/60 rounded-lg border border-audyn-100">
+            <div className="flex items-start gap-2">
+              <Lightbulb className="w-3.5 h-3.5 text-audyn-500 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-audyn-700">
+                {comment.suggestion}
+              </p>
+            </div>
+          </div>
         )}
       </div>
     </div>

@@ -733,22 +733,27 @@ export async function runScoredAnalysis(
     const agentEvaluations: AgentSectionEvaluation[] = []
     const allSectionComments: AnalysisComment[] = []
 
-    for (const agent of agents) {
-      if (signal.aborted) throw new DOMException('Aborted', 'AbortError')
+    // Update progress for section (all agents run concurrently)
+    onProgress({
+      currentStep: `Evaluating "${section.name}" with ${agents.length} agent${agents.length > 1 ? 's' : ''}...`,
+      currentSlideIndex: slidesInSection[0]?.index || 0,
+      currentAgentId: agents[0]?.id || '',
+      totalSlides,
+      totalAgents,
+      percentComplete: Math.round((processedSteps / totalSteps) * 100),
+      currentSectionIndex: sectionIndex,
+      currentSectionName: section.name,
+      totalSections: sortedSections.length,
+    })
 
-      onProgress({
-        currentStep: `Evaluating "${section.name}" with ${agent.name}...`,
-        currentSlideIndex: slidesInSection[0]?.index || 0,
-        currentAgentId: agent.id,
-        totalSlides,
-        totalAgents,
-        percentComplete: Math.round((processedSteps / totalSteps) * 100),
-      })
+    // Run all agents concurrently for this section
+    const agentPromises = agents.map(async (agent) => {
+      if (signal.aborted) throw new DOMException('Aborted', 'AbortError')
 
       const metrics = agentMetricsMap[agent.id] || []
 
       try {
-        const { evaluation, comments } = await analyzeSectionWithScoring(
+        return await analyzeSectionWithScoring(
           slidesInSection,
           section.id,
           section.name,
@@ -759,17 +764,25 @@ export async function runScoredAnalysis(
           apiConfig,
           signal
         )
-
-        agentEvaluations.push(evaluation)
-        allSectionComments.push(...comments)
       } catch (error) {
         if ((error as Error).name === 'AbortError') throw error
         console.error(`Error evaluating section "${section.name}" with ${agent.name}:`, error)
+        return null
       }
+    })
 
-      processedSteps++
-      await new Promise((resolve) => setTimeout(resolve, 100))
+    const results = await Promise.all(agentPromises)
+
+    // Process results - filter out failed ones
+    for (const result of results) {
+      if (result) {
+        agentEvaluations.push(result.evaluation)
+        allSectionComments.push(...result.comments)
+      }
     }
+
+    processedSteps += agents.length
+    await new Promise((resolve) => setTimeout(resolve, 100))
 
     // Calculate average score across all agents for this section
     const averageScore =
@@ -903,6 +916,165 @@ function aggregateAgentMetricAverages(
   }
 
   return averages
+}
+
+/**
+ * Run scored analysis for specific (section, agent) pairs only
+ * Used for re-analyzing addressed comments where we only need to re-run
+ * specific agents on specific sections.
+ */
+export async function runScoredAnalysisForAgentSections(
+  presentation: Presentation,
+  sortedSections: Section[],
+  allAgents: Agent[],
+  agentMetricsMap: Record<string, EvaluationMetric[]>,
+  sectionAgentPairs: { section: Section; sectionIndex: number; agentIds: string[] }[],
+  apiConfig: APIKeyConfig,
+  onProgress: (progress: AnalysisProgress) => void,
+  signal: AbortSignal
+): Promise<ScoredAnalysisResult> {
+  const totalSlides = presentation.slides.length
+  const totalAgents = allAgents.length
+  let processedSteps = 0
+  const totalSteps = sectionAgentPairs.reduce((sum, p) => sum + p.agentIds.length, 0)
+
+  const sectionAnalyses: SectionAnalysis[] = []
+  const sectionEvaluationResults: SectionEvaluationResult[] = []
+
+  for (const { section, sectionIndex, agentIds } of sectionAgentPairs) {
+    if (signal.aborted) throw new DOMException('Aborted', 'AbortError')
+
+    const slidesInSection = getSlidesInSection(sectionIndex, sortedSections, presentation.slides)
+    const agentsForSection = allAgents.filter((a) => agentIds.includes(a.id))
+
+    // Collect agent evaluations and comments for this section
+    const agentEvaluations: AgentSectionEvaluation[] = []
+    const allSectionComments: AnalysisComment[] = []
+
+    onProgress({
+      currentStep: `Re-analyzing "${section.name}" with ${agentsForSection.length} agent${agentsForSection.length > 1 ? 's' : ''}...`,
+      currentSlideIndex: slidesInSection[0]?.index || 0,
+      currentAgentId: agentsForSection[0]?.id || '',
+      totalSlides,
+      totalAgents,
+      percentComplete: Math.round((processedSteps / totalSteps) * 100),
+      currentSectionIndex: sectionIndex,
+      currentSectionName: section.name,
+      totalSections: sortedSections.length,
+    })
+
+    // Run agents concurrently for this section
+    const agentPromises = agentsForSection.map(async (agent) => {
+      if (signal.aborted) throw new DOMException('Aborted', 'AbortError')
+
+      const metrics = agentMetricsMap[agent.id] || []
+
+      try {
+        return await analyzeSectionWithScoring(
+          slidesInSection,
+          section.id,
+          section.name,
+          sectionIndex,
+          sortedSections.length,
+          agent,
+          metrics,
+          apiConfig,
+          signal
+        )
+      } catch (error) {
+        if ((error as Error).name === 'AbortError') throw error
+        console.error(`Error evaluating section "${section.name}" with ${agent.name}:`, error)
+        return null
+      }
+    })
+
+    const results = await Promise.all(agentPromises)
+
+    for (const result of results) {
+      if (result) {
+        agentEvaluations.push(result.evaluation)
+        allSectionComments.push(...result.comments)
+      }
+    }
+
+    processedSteps += agentsForSection.length
+    await new Promise((resolve) => setTimeout(resolve, 100))
+
+    // Calculate average score for this section (only from re-analyzed agents)
+    const averageScore =
+      agentEvaluations.length > 0
+        ? agentEvaluations.reduce((sum, e) => sum + e.weightedTotal, 0) / agentEvaluations.length
+        : 0
+
+    const sectionEvalResult: SectionEvaluationResult = {
+      sectionId: section.id,
+      sectionName: section.name,
+      sectionIndex,
+      agentEvaluations,
+      averageScore,
+    }
+    sectionEvaluationResults.push(sectionEvalResult)
+
+    // Build slide analyses
+    const slideAnalyses: SlideAnalysis[] = slidesInSection.map(({ slide, index }) => ({
+      slideId: slide.id,
+      slideIndex: index,
+      comments: allSectionComments.filter((c) => c.slideId === slide.id),
+    }))
+
+    const sectionAnalysis: SectionAnalysis = {
+      sectionId: section.id,
+      sectionName: section.name,
+      summary: agentEvaluations[0]?.sectionSummary || '',
+      slides: slideAnalyses,
+      commentCount: {
+        total: 0,
+        byAgent: {},
+        bySeverity: {},
+      },
+    }
+
+    for (const slide of slideAnalyses) {
+      for (const comment of slide.comments) {
+        sectionAnalysis.commentCount.total++
+        sectionAnalysis.commentCount.byAgent[comment.agentName] =
+          (sectionAnalysis.commentCount.byAgent[comment.agentName] || 0) + 1
+        sectionAnalysis.commentCount.bySeverity[comment.severity] =
+          (sectionAnalysis.commentCount.bySeverity[comment.severity] || 0) + 1
+      }
+    }
+
+    if (!sectionAnalysis.summary) {
+      sectionAnalysis.summary = generateSectionSummary(sectionAnalysis)
+    }
+    sectionAnalyses.push(sectionAnalysis)
+  }
+
+  // Calculate overall score
+  const overallScore =
+    sectionEvaluationResults.length > 0
+      ? sectionEvaluationResults.reduce((sum, s) => sum + s.averageScore, 0) / sectionEvaluationResults.length
+      : 0
+
+  const totalComments = sectionAnalyses.reduce((sum, s) => s.commentCount.total + sum, 0)
+  const overallSummary =
+    totalComments === 0
+      ? `Re-analysis complete. Score: ${overallScore.toFixed(1)}/7`
+      : `Re-analysis complete. Found ${totalComments} item${totalComments > 1 ? 's' : ''}. Score: ${overallScore.toFixed(1)}/7`
+
+  return {
+    id: generateId(),
+    presentationId: presentation.id,
+    sections: sectionAnalyses,
+    overallSummary,
+    analyzedAt: new Date(),
+    agentsUsed: sectionAgentPairs.flatMap((p) => p.agentIds),
+    isComplete: true,
+    slideEvaluations: [],
+    sectionScores: [],
+    overallScore,
+    sectionEvaluations: sectionEvaluationResults,
+  }
 }
 
 /**
